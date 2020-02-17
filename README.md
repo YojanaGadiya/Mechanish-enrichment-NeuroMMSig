@@ -1,2 +1,2 @@
 # Mechanish-enrichment-NeuroMMSig
-Lab course fro Mechanism enrichment of NeuroMMSig
+Lab course for Mechanism enrichment of NeuroMMSig
