@@ -20,9 +20,6 @@ class TestRcr(unittest.TestCase):
         path_1 = reverse_causal_reasoning.network_to_file(MY_TEST_DATA_PATH_1)
         self.assertEqual('test.graphml',path_1)
 
-        path_2 = reverse_causal_reasoning.network_to_file(MY_TEST_DATA_PATH_2)
-        self.assertRaises(ValueError,path_2)
-
     def test_overlay_graph(self):
         fold_change = {'A': 1, 'B': 1, 'C': -1, 'D': -1, 'E': -1, 'F': 1}
         G = nx.read_graphml('test.graphml')
@@ -40,8 +37,8 @@ class TestRcr(unittest.TestCase):
             node_num, concord, non_concord, p_val = reverse_causal_reasoning.calculate_concordance(overlay_graph, i)
             concordance_dict[i] = (node_num, concord, non_concord)
 
-        expected = {'A': (5, 3, 2), 'B': (2, 0, 0), 'C': (1, 0, 1),
+        expected = {'A': (5, 3, 2), 'B': (2, 0, 2), 'C': (1, 0, 1),
                     'D': (0, 0, 0), 'E': (0, 0, 0), 'F': (0, 0, 0)}
-        self.assertEqual(expected,concordance_dict)
+        self.assertEqual(expected, concordance_dict)
 
 

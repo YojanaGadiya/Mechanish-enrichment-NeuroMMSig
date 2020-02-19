@@ -28,7 +28,7 @@ def shortest_path(graph: nx.Graph, hyp_node: str) -> dict:
     return nx.single_source_shortest_path(graph, hyp_node)
 
 
-def edge_label_value(graph: nx.Graph, path_list: list) -> int:
+def edge_label_value(graph: nx.Graph, path_list: list):
     """Return the product of the edges value of the path."""
     if len(path_list) == 1:
         return 0
@@ -41,46 +41,50 @@ def edge_label_value(graph: nx.Graph, path_list: list) -> int:
 
             # check if exist
             if 'Relation' not in k:
-                print('The edge value missing.')
-                edge_list.append(0)
+                print('Relation value missing for {0} and {1}'.format(path_list[i], path_list[i + 1]))
+                raise ValueError('Relation value missing')
             else:
                 edge_list.append(edge[k['Relation']])
-        return np.prod(edge_list)
+        return np.prod(edge_list, dtype=np.int8)
 
 
-def node_label_value(graph: nx.Graph, path_list: list)-> int:
+def node_label_value(graph: nx.Graph, path_list: list):
     """Returns the product of the starting and end node of the path."""
     if len(path_list) == 1:
         return 0
     else:
         node_list = []
-        for i, j in graph.nodes.data():
-            if i == path_list[0] or i == path_list[-1]:
-                node_list.append(j['change'])
-        return np.prod(node_list)
+        node_attr_dict = nx.get_node_attributes(graph, 'change')
+        for i in node_attr_dict:
+            if node_attr_dict[i] == 0:
+                print('The ')
+            if i in path_list:
+                node_list.append(node_attr_dict[i])
+        return np.prod(node_list, dtype=np.int8)
 
 
-def p_value(concordance_count: int, total_nodes: int, p: int)-> int:
-    """Return the p-value
+def p_value(concordance_count: int, nodes: int, p: int) -> int:
+    """Return the p-value.
 
     @:param concordance_count : the number of successful prediction
     @:param total_nodes : the total number of downstream nodes
     @:param p : probability of achieving a result
     """
-    return binom.pmf(concordance_count, total_nodes, p)
+    return binom.pmf(concordance_count, nodes, p)
 
 
-def p_val_correction(p: list)-> list:
+def p_val_correction(p: list) -> list:
     """Uses Benjamini and Hochberg p-value correction."""
     return multipletests(p, alpha=0.05, method='fdr_bh')
 
 
-def calculate_concordance(graph: nx.Graph, hyp_node: str)-> tuple:
+def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
     if hyp_node not in graph:
         raise ValueError('Node not preset in graph.')
     else:
-        concordance_count = -1  # to remove the node path with itself count(which will be 0).
+        concordance_count = 0
         non_concordance_count = 0
+        ambiguous = 0
 
         path_dict = shortest_path(graph, hyp_node)
         node_num = len(path_dict) - 1  # to remove the node path with itself.
@@ -89,11 +93,17 @@ def calculate_concordance(graph: nx.Graph, hyp_node: str)-> tuple:
             path = path_dict[i]  # path to travel
             edge_val = edge_label_value(graph, path)  # edge product value
             node_val = node_label_value(graph, path)  # node product value
-            if edge_val == node_val:
-                concordance_count += 1
-            else:
-                non_concordance_count += 1
-        p_val = p_value(concordance_count, node_num, 0.5)
+
+            # concordance and non-concordance count
+            if edge_val != 0 or node_val != 0:
+                if edge_val == node_val:
+                    concordance_count += 1
+                else:
+                    non_concordance_count += 1
+            elif node_val == 0:
+                ambiguous += 1
+
+        p_val = p_value(concordance_count, node_num - ambiguous, 0.5)
     return node_num, concordance_count, non_concordance_count, p_val
 
 
@@ -101,7 +111,7 @@ def rcr_main(file_path: str, fold_change: dict, threshold: float, output_file: s
     path = network_to_file(file_path)
     G = nx.read_graphml(path)
 
-    overlay_graph = overlay(G, fold_change,threshold)
+    overlay_graph = overlay(G, fold_change, threshold)
     concordance_dict = {}
 
     for i in overlay_graph.nodes():

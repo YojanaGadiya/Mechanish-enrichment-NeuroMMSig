@@ -16,9 +16,9 @@
   <data key="d0">increase</data>
 </edge>
 <edge source="B" target="E">
-  <data key="d0">decrease</data>
+  <data key="d0">increase</data>
 </edge>
 <edge source="C" target="F">
-  <data key="d0">decrease</data>
+  <data key="d0">increase</data>
 </edge>
 </graph></graphml>
