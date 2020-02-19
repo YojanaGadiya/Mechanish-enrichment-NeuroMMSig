@@ -2,6 +2,7 @@ import unittest
 import os
 import networkx as nx
 from rcr import reverse_causal_reasoning
+from sortedcontainers import SortedDict
 
 class TestRcr(unittest.TestCase):
     """Checks for function with the following graph data:
@@ -41,4 +42,8 @@ class TestRcr(unittest.TestCase):
                     'D': (0, 0, 0), 'E': (0, 0, 0), 'F': (0, 0, 0)}
         self.assertEqual(expected, concordance_dict)
 
+    def test_gene_exp_data(self):
+        expected = {'FCRLA': -0.019, 'SAMD4A': -5.14, 'SCYL3': -0.875, 'SLC37A1': -2.28}
+        fc_dict = reverse_causal_reasoning.edit_csv('gene_exp_test.csv')
+        self.assertEqual(fc_dict, expected)
 

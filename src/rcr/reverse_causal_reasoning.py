@@ -4,6 +4,7 @@ import pandas as pd
 from scipy.stats import binom
 from statsmodels.stats.multitest import multipletests
 from .network import network_to_file
+from .dgexp_edit import edit_csv
 
 
 def overlay(graph: nx.Graph, fold_change_dict: dict, threshold: float) -> nx.Graph:
@@ -63,7 +64,7 @@ def node_label_value(graph: nx.Graph, path_list: list):
         return np.prod(node_list, dtype=np.int8)
 
 
-def p_value(concordance_count: int, nodes: int, p: int) -> int:
+def p_value(concordance_count: int, nodes: int, p: float) -> float:
     """Return the p-value.
 
     @:param concordance_count : the number of successful prediction
@@ -79,6 +80,7 @@ def p_val_correction(p: list) -> list:
 
 
 def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
+    """Calculation of concordance, non-concordance and p-value for the data."""
     if hyp_node not in graph:
         raise ValueError('Node not preset in graph.')
     else:
@@ -107,9 +109,13 @@ def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
     return node_num, concordance_count, non_concordance_count, p_val
 
 
-def rcr_main(file_path: str, fold_change: dict, threshold: float, output_file: str):
+def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: str):
+    # getting graph from pathway data.
     path = network_to_file(file_path)
     G = nx.read_graphml(path)
+
+    # getting fold change dictionary from gene expression data.
+    fold_change = edit_csv(gene_exp_path)
 
     overlay_graph = overlay(G, fold_change, threshold)
     concordance_dict = {}

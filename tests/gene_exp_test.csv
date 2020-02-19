@@ -1,0 +1,6 @@
+ID	adj.P.Val	P.Value	t	B	logFC	Gene.symbol	Gene.title
+215120_s_at	8.170000000000001e-07	1.49e-11	-107.0	17.308220000000002	-3.14	SAMD4A	sterile alpha motif domain containing 4A
+235400_at	0.000891	3.26e-08	-31.7	9.742389999999999	-0.0186	FCRLA	Fc receptor like A
+41329_at	0.0011300000000000001	8.339999999999999e-08	-27.3	8.69657	-0.875	SCYL3	SCY1 like pseudokinase 3
+218928_s_at	0.0011300000000000001	1.11e-07	-26.1	8.380339999999999	-2.28	SLC37A1	solute carrier family 37 member 1
+215495_s_at	0.0011300000000000001	1.31e-07	-25.4	8.19115	-5.14	SAMD4A	sterile alpha motif domain containing 4A
