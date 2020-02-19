@@ -1,7 +1,7 @@
 import pandas as pd
 import networkx as nx
 
-def network_to_file(file_name: str): -> str
+def network_to_file(file_name: str)-> str:
     df = pd.read_csv(file_name, sep='\t', header=None)
     df.columns = ['Prt_1', 'Relation', 'Prt_2']
 
