@@ -1,0 +1,3 @@
+[console_scripts]
+rcr = rcr.cli:cli
+

@@ -4,7 +4,7 @@ import random
 
 
 def network_to_file(file_name: str) -> str:
-    if file_name.endswith('.csv'):
+    if file_name.endswith('.csv' | '.txt'):
         df = pd.read_csv(file_name, header=None)
         df.columns = ['Prt_1', 'Relation', 'Prt_2']
         # changing relation values
