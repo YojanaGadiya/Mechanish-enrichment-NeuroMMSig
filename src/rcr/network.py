@@ -2,25 +2,26 @@ import pandas as pd
 import networkx as nx
 
 def network_to_file(file_name: str)-> str:
-    df = pd.read_csv(file_name, sep='\t', header=None)
-    df.columns = ['Prt_1', 'Relation', 'Prt_2']
+    if file_name.endswith('.csv'):
+        df = pd.read_csv(file_name, header=None)
+        df.columns = ['Prt_1', 'Relation', 'Prt_2']
+        # changing relation values
+        for relation_value in df['Relation']:
+            if relation_value not in ['increase', 'decrease']:
+                print(relation_value)
+                df.replace(relation_value, random.choice(['increase', 'decrease']), inplace=True)
 
-    #change relation values
-    relations = {'controls-phosphorylation-of': 'increase', 'controls-state-change-of': 'decrease',
-                 'in-complex-with':'increase'}
-    for i in relations:
-        df.replace(i,relations[i], inplace=True)
+        # create network
+        DG = nx.DiGraph()
+        DG.add_nodes_from(df['Prt_1'])
+        DG.add_nodes_from(df['Prt_2'])
+        for _,row in df.iterrows():
+            DG.add_edge(row['Prt_1'], row['Prt_2'], **{"Relation":row['Relation']})
 
-    #create new dataframe with changed relationship values.
-    new_df = df.loc[df['Relation'].isin(relations.values())]
+        path = "test.graphml"
+        nx.write_graphml(DG, path)
+        return path
+    else:
+        raise ValueError("Please pass a CSV file without header.")
 
-    #creat network
-    DG = nx.DiGraph()
-    DG.add_nodes_from(new_df['Prt_1'])
-    DG.add_nodes_from(new_df['Prt_2'])
-    for _,row in new_df.iterrows():
-        DG.add_edge(row['Prt_1'], row['Prt_2'], **{"Relation":row['Relation']})
 
-    path = "test.graphml"
-    nx.write_graphml(DG, path)
-    return path
