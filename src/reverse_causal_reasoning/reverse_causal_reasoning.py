@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Code to carry out reverse causal reasoning (RCR)."""
+"""Code to carry out reverse causal reasoning (RCR) algorithm."""
 
 import networkx as nx
 import numpy as np
@@ -11,6 +11,7 @@ import os
 from tqdm import tqdm
 from .network import network_to_file
 from .dgexp_edit import edit_csv
+from .constants import *
 
 
 def overlay(
@@ -58,16 +59,17 @@ def edge_label_value(
     if len(path_list) == 1:
         return 0
 
-    edge = {'increase': 1, 'decrease': -1}
+    # RELATIONVAL : [increase, decrease]
+    edge = {RELATIONVAL[0]: 1, RELATIONVAL[1]: -1}
     edge_list = []
 
     for i in range(len(path_list) - 1):
         k = graph.edges[path_list[i], path_list[i + 1]]  # edge dictionary attribute
 
         # check if exist
-        if 'Relation' not in k:
+        if RELATION not in k:
             raise ValueError('Relation value missing for {} and {}'.format(path_list[i], path_list[i + 1]))
-        edge_list.append(edge[k['Relation']])
+        edge_list.append(edge[k[RELATION]])
 
     return np.prod(edge_list, dtype=np.int32)
 
@@ -84,12 +86,19 @@ def node_label_value(
     if len(path_list) == 1:
         return 0
     node_list = []
-    node_attr_dict = nx.get_node_attributes(graph, 'change')
+    node_attr_dict = nx.get_node_attributes(graph, CHANGE)
 
     # calculating product of first and last node of graph.
-    start_node = path_list[0]
-    end_node = path_list[-1]
+    for node in path_list:
+        if node not in node_attr_dict:
+            print('{} not found in graph.'.format(node))
 
+
+    if start_node not in node_attr_dict:
+        return 0
+    elif end_node not in node_attr_dict:
+        print('{} not found in graph.'.format(start_node))
+        return 0
     node_list.append(node_attr_dict[start_node])
     node_list.append(node_attr_dict[end_node])
 
@@ -118,7 +127,7 @@ def p_val_correction(
     :param p : List of all p-values.
     """
 
-    return multipletests(p, alpha=0.05, method='fdr_bh')
+    return multipletests(p, alpha=ALPHA, method=PVALMETHOD)
 
 
 def calculate_concordance(
@@ -153,7 +162,7 @@ def calculate_concordance(
         elif node_val == 0:
             ambiguous += 1
 
-    p_val = p_value(concordance_count, node_num - ambiguous, 0.5)
+    p_val = p_value(concordance_count, node_num - ambiguous, PVAL)
     return node_num, concordance_count, non_concordance_count, p_val
 
 
@@ -201,21 +210,18 @@ def rcr_main(
     # forming dataframe
     concordance_df = pd.DataFrame.from_dict(concordance_dict)
     concordance_df = concordance_df.transpose()
-    concordance_df.columns = ['No_of_Nodes', 'Concordance', 'Non-concordance', 'p-value']
-
-    for i in ['No_of_Nodes', 'Concordance', 'Non-concordance']:
-        concordance_df[i] = pd.to_numeric(concordance_df[i])
+    concordance_df.columns = RCRDFCOLS  # [node no., concordance, non-concordance, p-value]
 
     # p-value correction
-    p_val = list(concordance_df['p-value'])
+    p_val = list(concordance_df[RCRDFCOLS[-1]])
     corrected_p_val = p_val_correction(p_val)[1]
-    concordance_df['Corrected p-val'] = corrected_p_val
+    concordance_df[CORRECTEDPVALCOL] = corrected_p_val
 
     # output file saving
-    dir = os.path.dirname(__file__)
-    output_path = os.path.join(dir, output_file)
+    folder = os.path.dirname(__file__)
+    output_path = os.path.join(folder, output_file)
     print('Saving to file {}'.format(output_path))
-    concordance_df.to_csv(output_file, index=True)
+    concordance_df.to_csv(output_file, index=True, header=True)
 
 
 if __name__ == "__main__":

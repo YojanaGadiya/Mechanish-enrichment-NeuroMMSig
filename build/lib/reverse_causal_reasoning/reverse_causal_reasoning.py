@@ -56,7 +56,6 @@ def node_label_value(graph: nx.Graph, path_list: list):
     node_list = []
     node_attr_dict = nx.get_node_attributes(graph, 'change')
 
-    # ToDo : improve naming, improve loop.
     for node in path_list:
         if node_attr_dict[node] == 0:
             print('No downstream node for {}'.format(node))

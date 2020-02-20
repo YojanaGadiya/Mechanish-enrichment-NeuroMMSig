@@ -17,6 +17,7 @@ from .reverse_causal_reasoning import rcr_main
 @click.option(
     '--file-sep',
     required=False,
+    default=',',
     type=str,
     help='Separator for the network file (Tab: \t)'
 )
@@ -29,8 +30,9 @@ from .reverse_causal_reasoning import rcr_main
 @click.option(
     '--gene-exp-data-sep',
     required=False,
+    default='\t',
     type=str,
-    help='Separator for gene expression data file (Tab : \t)'
+    help='Separator for gene expression data file (CSV : ,)'
 )
 @click.option(
     '--threshold',
@@ -46,11 +48,11 @@ from .reverse_causal_reasoning import rcr_main
     help='Path to save CSV file')
 def cli(
         file_path: str,
-        file_path_sep: str,
+        file_sep: str,
         gene_exp_data: str,
         gene_exp_data_sep: str,
         threshold: int,
         output_path: str
 ):
     click.echo('RCR concordance count initialized')  # equivalent to print
-    rcr_main(file_path, file_path_sep, gene_exp_data, gene_exp_data_sep, threshold, output_path)
+    rcr_main(file_path, file_sep, gene_exp_data, gene_exp_data_sep, threshold, output_path)
