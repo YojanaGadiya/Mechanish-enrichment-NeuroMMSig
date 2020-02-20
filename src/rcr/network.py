@@ -4,8 +4,8 @@ import random
 
 
 def network_to_file(file_name: str) -> str:
-    if file_name.endswith('.csv' | '.txt'):
-        df = pd.read_csv(file_name, header=None)
+    if file_name.endswith('.csv'):
+        df = pd.read_csv(file_name,header=None)
         df.columns = ['Prt_1', 'Relation', 'Prt_2']
         # changing relation values
         for relation_value in df['Relation']:
@@ -23,4 +23,4 @@ def network_to_file(file_name: str) -> str:
         nx.write_graphml(DG, path)
         return path
     else:
-        raise ValueError("Please pass a CSV file without header.")
+        raise ValueError("Please pass a CSV file.")

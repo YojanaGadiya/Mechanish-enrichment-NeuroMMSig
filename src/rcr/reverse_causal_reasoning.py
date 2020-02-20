@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import binom
 from statsmodels.stats.multitest import multipletests
+import os
 from .network import network_to_file
 from .dgexp_edit import edit_csv
 
@@ -11,13 +12,12 @@ def overlay(graph: nx.Graph, fold_change_dict: dict, threshold: float) -> nx.Gra
     """Overlaying the fold-change data onto the graph."""
     for i in graph.nodes():
         # check if it exists
-        if i not in graph.nodes():
-            print('{} not found in graph', i)
-            continue
+        if i.upper() not in fold_change_dict:
+            print('{} not found in graph'.format(i))
         else:
-            if fold_change_dict[i] > threshold:  # increased expression
+            if fold_change_dict[i.upper()] > threshold:  # increased expression
                 graph.add_node(i, change=1)
-            elif fold_change_dict[i] < threshold:  # decreased expression
+            elif fold_change_dict[i.upper()] < threshold:  # decreased expression
                 graph.add_node(i, change=-1)
             else:  # no change
                 graph.add_node(i, change=0)
@@ -117,12 +117,23 @@ def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: 
     # getting fold change dictionary from gene expression data.
     fold_change = edit_csv(gene_exp_path)
 
+    print('Calculating convergence..')
     overlay_graph = overlay(G, fold_change, threshold)
     concordance_dict = {}
 
     for i in overlay_graph.nodes():
         concordance = calculate_concordance(overlay_graph, i)
         concordance_dict[i] = concordance
+
+    # remove leave nodes or nodes with no downstream nodes.
+    remove = []
+    for i in concordance_dict:
+        node_num, _, _, _ = concordance_dict[i]
+        if node_num == 0.0:
+            remove.append(i)
+
+    for node in remove:
+        del concordance_dict[node]
 
     # forming dataframe
     concordance_df = pd.DataFrame.from_dict(concordance_dict)
@@ -133,9 +144,15 @@ def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: 
         concordance_df[i] = pd.to_numeric(concordance_df[i])
 
     # p-value correction
+    print('Correcting p-value.')
     p_val = list(concordance_df['p-value'])
     corrected_p_val = p_val_correction(p_val)[1]
     concordance_df['Corrected p-val'] = corrected_p_val
+
+    # output file saving
+    dir = os.path.dirname(__file__)
+    output_path = os.path.join(dir, output_file)
+    print('Saving to file {}'.format(output_path))
     concordance_df.to_csv(output_file, index=True)
     return
 
