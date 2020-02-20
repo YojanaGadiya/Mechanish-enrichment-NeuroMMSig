@@ -1,5 +1,5 @@
-dist/
-build/
-*.dev0/
+/dist/
+/build/
+/*.dev0/
 .idea
 *.egg-info
