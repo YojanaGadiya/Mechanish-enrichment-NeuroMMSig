@@ -1,0 +1,3 @@
+[console_scripts]
+reverse_causal_reasoning = reverse_causal_reasoning.cli:cli
+

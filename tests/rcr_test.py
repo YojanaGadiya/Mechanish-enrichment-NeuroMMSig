@@ -1,7 +1,7 @@
 import unittest
 import os
 import networkx as nx
-from rcr import reverse_causal_reasoning
+from reverse_causal_reasoning import reverse_causal_reasoning
 from sortedcontainers import SortedDict
 
 class TestRcr(unittest.TestCase):
@@ -13,13 +13,6 @@ class TestRcr(unittest.TestCase):
                 +1            |-------->D(-1)
                                     +1
     """
-    def test_network_to_file(self):
-        HERE = os.path.dirname(__file__)
-        MY_TEST_DATA_PATH_1 = os.path.join(HERE, 'test_data.csv')
-        MY_TEST_DATA_PATH_2 = os.path.join(HERE, 'test_data.tsv')
-
-        path_1 = reverse_causal_reasoning.network_to_file(MY_TEST_DATA_PATH_1)
-        self.assertEqual('test.graphml',path_1)
 
     def test_overlay_graph(self):
         fold_change = {'A': 1, 'B': 1, 'C': -1, 'D': -1, 'E': -1, 'F': 1}
@@ -38,12 +31,12 @@ class TestRcr(unittest.TestCase):
             node_num, concord, non_concord, p_val = reverse_causal_reasoning.calculate_concordance(overlay_graph, i)
             concordance_dict[i] = (node_num, concord, non_concord)
 
-        expected = {'A': (5, 3, 2), 'B': (2, 0, 2), 'C': (1, 0, 1),
+        expected = {'A': (5, 2, 3), 'B': (2, 0, 2), 'C': (1, 0, 1),
                     'D': (0, 0, 0), 'E': (0, 0, 0), 'F': (0, 0, 0)}
         self.assertEqual(expected, concordance_dict)
 
     def test_gene_exp_data(self):
         expected = {'FCRLA': -0.019, 'SAMD4A': -5.14, 'SCYL3': -0.875, 'SLC37A1': -2.28}
-        fc_dict = reverse_causal_reasoning.edit_csv('gene_exp_test.csv')
+        fc_dict = reverse_causal_reasoning.edit_csv('gene_exp_test.csv',delimiter='\t')
         self.assertEqual(fc_dict, expected)
 
