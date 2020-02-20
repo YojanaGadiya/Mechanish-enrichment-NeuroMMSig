@@ -22,8 +22,7 @@ def overlay(
 
     :param graph : Graph of the knowledge.
     :param fold_change_dict : The fold-change dictionary from the gene expression data.
-    :param threshold : The threshold value to differentiate up-regulated and down-regulated
-                        genes from the ambiguous one.
+    :param threshold : The threshold value to differentiate up-regulated and down-regulated genes from the ambiguous one.
     """
     for i in graph.nodes():
         # check if it exists
