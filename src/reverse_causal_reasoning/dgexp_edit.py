@@ -8,7 +8,7 @@ import pandas as pd
 from .constants import *
 
 
-def edit_csv(file_path: str, delimiter: str = ',') -> Dict:
+def edit_csv(file_path: str, delimiter: str) -> Dict:
     """Convert the gene expression data to fold-change dictionary."""
     gene_exp = pd.read_csv(file_path, sep=delimiter)
     gene_exp.dropna(inplace=True)

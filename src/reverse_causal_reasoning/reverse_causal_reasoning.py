@@ -71,7 +71,7 @@ def edge_label_value(
             raise ValueError('Relation value missing for {} and {}'.format(path_list[i], path_list[i + 1]))
         edge_list.append(edge[k[RELATION]])
 
-    return np.prod(edge_list, dtype=np.int32)
+    return np.prod(edge_list)
 
 
 def node_label_value(
@@ -91,16 +91,16 @@ def node_label_value(
     # calculating product of first and last node of graph.
     start_node = path_list[0]
     end_node = path_list[-1]
-    if start_node not in node_attr_dict:
-        print('{} not found in graph.'.format(start_node))
-        return 0
-    elif end_node not in node_attr_dict:
-        print('{} not found in graph.'.format(start_node))
-        return 0
-    node_list.append(node_attr_dict[start_node])
-    node_list.append(node_attr_dict[end_node])
 
-    return np.prod(node_list, dtype=np.int8)
+    if start_node not in node_attr_dict:
+        print('{} not found in network'.format(start_node))
+    elif end_node not in node_attr_dict:
+        print('{} not found in network'.format(end_node))
+    else:
+        node_list.append(node_attr_dict[start_node])
+        node_list.append(node_attr_dict[end_node])
+
+    return np.prod(node_list)
 
 
 def p_value(

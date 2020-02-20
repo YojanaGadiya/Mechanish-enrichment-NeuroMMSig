@@ -8,7 +8,7 @@ import random
 from .constants import *
 
 
-def network_to_file(file_name: str, delimiter: str = ',') -> nx.Graph:
+def network_to_file(file_name: str, delimiter: str) -> nx.Graph:
     df = pd.read_csv(file_name, sep=delimiter, header=None)
     df.columns = NETWORKCOL # ['Protein1 , Relation, Protein2]
 

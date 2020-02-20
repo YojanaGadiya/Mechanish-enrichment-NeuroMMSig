@@ -16,8 +16,8 @@ class TestRcr(unittest.TestCase):
 
     def test_overlay_graph(self):
         fold_change = {'A': 1, 'B': 1, 'C': -1, 'D': -1, 'E': -1, 'F': 1}
-        G = nx.read_graphml('test.graphml')
-        overlay_graph = reverse_causal_reasoning.overlay(G,fold_change,0)
+        graph = nx.read_graphml('test.graphml')
+        overlay_graph = reverse_causal_reasoning.overlay(graph,fold_change,0)
         node_attribute = nx.get_node_attributes(overlay_graph,'change')
         self.assertEqual(fold_change, node_attribute)
 

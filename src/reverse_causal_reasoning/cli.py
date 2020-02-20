@@ -17,9 +17,9 @@ from .reverse_causal_reasoning import rcr_main
 @click.option(
     '--file-sep',
     required=False,
-    default=',',
+    default='\t',
     type=str,
-    help='Separator for the network file (Tab: \t)'
+    help='Separator for the network file (CSV: ,)'
 )
 @click.option(
     '--gene-exp-data',
@@ -37,7 +37,7 @@ from .reverse_causal_reasoning import rcr_main
 @click.option(
     '--threshold',
     required=False,
-    default=2.0,
+    default=1.0,
     type=float,
     help='Threshold value for fold-change'
 )
