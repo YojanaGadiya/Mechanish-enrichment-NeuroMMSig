@@ -4,12 +4,13 @@ import pandas as pd
 from scipy.stats import binom
 from statsmodels.stats.multitest import multipletests
 import os
+from tqdm import tqdm
 from .network import network_to_file
 from .dgexp_edit import edit_csv
 
 
 def overlay(graph: nx.Graph, fold_change_dict: dict, threshold: float) -> nx.Graph:
-    """Overlaying the fold-change data onto the graph."""
+    """Returns the overlayed graph with fold-change data."""
     for i in graph.nodes():
         # check if it exists
         if i.upper() not in fold_change_dict:
@@ -58,7 +59,7 @@ def node_label_value(graph: nx.Graph, path_list: list):
         node_attr_dict = nx.get_node_attributes(graph, 'change')
         for i in node_attr_dict:
             if node_attr_dict[i] == 0:
-                print('The ')
+                print('No downstream node for {}'.format(i))
             if i in path_list:
                 node_list.append(node_attr_dict[i])
         return np.prod(node_list, dtype=np.int8)
@@ -75,7 +76,7 @@ def p_value(concordance_count: int, nodes: int, p: float) -> float:
 
 
 def p_val_correction(p: list) -> list:
-    """Uses Benjamini and Hochberg p-value correction."""
+    """Returns corrected p-value using Benjamini and Hochberg correction."""
     return multipletests(p, alpha=0.05, method='fdr_bh')
 
 
@@ -91,7 +92,7 @@ def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
         path_dict = shortest_path(graph, hyp_node)
         node_num = len(path_dict) - 1  # to remove the node path with itself.
 
-        for i in path_dict:
+        for i in tqdm(path_dict):
             path = path_dict[i]  # path to travel
             edge_val = edge_label_value(graph, path)  # edge product value
             node_val = node_label_value(graph, path)  # node product value
@@ -125,7 +126,7 @@ def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: 
         concordance = calculate_concordance(overlay_graph, i)
         concordance_dict[i] = concordance
 
-    # remove leave nodes or nodes with no downstream nodes.
+    # remove leaf nodes or nodes with no downstream nodes.
     remove = []
     for i in concordance_dict:
         node_num, _, _, _ = concordance_dict[i]
@@ -144,7 +145,6 @@ def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: 
         concordance_df[i] = pd.to_numeric(concordance_df[i])
 
     # p-value correction
-    print('Correcting p-value.')
     p_val = list(concordance_df['p-value'])
     corrected_p_val = p_val_correction(p_val)[1]
     concordance_df['Corrected p-val'] = corrected_p_val

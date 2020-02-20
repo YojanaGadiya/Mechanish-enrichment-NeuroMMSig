@@ -10,9 +10,8 @@ def edit_csv(file_path: str) -> dict:
     #  removal of insignificant gene
     fold_change_dict = {}
     for row in gene_exp.itertuples():
-        idx, p_val, fc, gene = row
-        if p_val < 0.05:
-            fold_change_dict[gene.upper()] = round(fc, 3)
+        idx, _, fc, gene = row
+        fold_change_dict[gene.upper()] = round(fc, 3)
 
     return fold_change_dict
 
