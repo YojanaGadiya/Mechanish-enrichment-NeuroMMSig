@@ -1,3 +1,4 @@
-/dist/
-/build/
-/reverse_causal_reasoning-0.0.1.dev0/
+dist
+build
+*.dev0
+.idea

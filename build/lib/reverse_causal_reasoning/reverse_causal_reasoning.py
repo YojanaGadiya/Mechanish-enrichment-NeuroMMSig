@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+"""Code to carry out reverse causal reasoning (RCR) algorithm."""
+
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -7,10 +11,20 @@ import os
 from tqdm import tqdm
 from .network import network_to_file
 from .dgexp_edit import edit_csv
+from .constants import *
 
 
-def overlay(graph: nx.Graph, fold_change_dict: dict, threshold: float) -> nx.Graph:
-    """Return the overlayed graph with fold-change data."""
+def overlay(
+        graph: nx.Graph,
+        fold_change_dict: dict,
+        threshold: float
+) -> nx.Graph:
+    """Return the overlayed graph with fold-change data.
+
+    :param graph : Graph of the knowledge.
+    :param fold_change_dict : The fold-change dictionary from the gene expression data.
+    :param threshold : The threshold value to differentiate up-regulated and down-regulated genes from the ambiguous one.
+    """
     for i in graph.nodes():
         # check if it exists
         if i.upper() not in fold_change_dict:
@@ -25,65 +39,104 @@ def overlay(graph: nx.Graph, fold_change_dict: dict, threshold: float) -> nx.Gra
     return graph
 
 
-def shortest_path(graph: nx.Graph, hyp_node: str) -> dict:
+def shortest_path(
+        graph: nx.Graph,
+        hyp_node: str
+) -> dict:
     """Return the shortest path of the hype nodes with all the other nodes."""
     return nx.single_source_shortest_path(graph, hyp_node)
 
 
-def edge_label_value(graph: nx.Graph, path_list: list):
-    """Return the product of the edges value of the path."""
+def edge_label_value(
+        graph: nx.Graph,
+        path_list: list
+):
+    """Return the product of the edges value of the path.
+
+    :param graph : The graph of the knowledge created.
+    :param path_list : The
+    """
     if len(path_list) == 1:
         return 0
 
-    edge = {'increase': 1, 'decrease': -1}
+    # RELATIONVAL : [increase, decrease]
+    edge = {RELATIONVAL[0]: 1, RELATIONVAL[1]: -1}
     edge_list = []
 
     for i in range(len(path_list) - 1):
         k = graph.edges[path_list[i], path_list[i + 1]]  # edge dictionary attribute
 
         # check if exist
-        if 'Relation' not in k:
+        if RELATION not in k:
             raise ValueError('Relation value missing for {} and {}'.format(path_list[i], path_list[i + 1]))
-        edge_list.append(edge[k['Relation']])
+        edge_list.append(edge[k[RELATION]])
 
     return np.prod(edge_list, dtype=np.int32)
 
 
-def node_label_value(graph: nx.Graph, path_list: list):
-    """Return the product of the starting and end node of the path."""
+def node_label_value(
+        graph: nx.Graph,
+        path_list: list
+):
+    """Return the product of the starting and end node of the path.
+
+    :param graph : The graph of the knowledge created.
+    :param path_list : The list of the path of one node to another.
+    """
     if len(path_list) == 1:
         return 0
     node_list = []
-    node_attr_dict = nx.get_node_attributes(graph, 'change')
+    node_attr_dict = nx.get_node_attributes(graph, CHANGE)
 
-    for node in path_list:
-        if node_attr_dict[node] == 0:
-            print('No downstream node for {}'.format(node))
-        node_list.append(node_attr_dict[i])
+    # calculating product of first and last node of graph.
+    start_node = path_list[0]
+    end_node = path_list[-1]
+    if start_node not in node_attr_dict:
+        print('{} not found in graph.'.format(start_node))
+        return 0
+    elif end_node not in node_attr_dict:
+        print('{} not found in graph.'.format(start_node))
+        return 0
+    node_list.append(node_attr_dict[start_node])
+    node_list.append(node_attr_dict[end_node])
+
     return np.prod(node_list, dtype=np.int8)
 
 
-def p_value(concordance_count: int, nodes: int, p: float) -> float:
+def p_value(
+        concordance_count: int,
+        nodes: int,
+        p: float
+) -> float:
     """Return the p-value.
 
-    @:param concordance_count : the number of successful prediction
-    @:param total_nodes : the total number of downstream nodes
-    @:param p : probability of achieving a result
+    :param concordance_count : The number of successful prediction.
+    :param nodes : The total number of downstream nodes excluding the ambiguous one.
+    :param p : Probability of achieving a result.
     """
     return binom.pmf(concordance_count, nodes, p)
 
 
-def p_val_correction(p: list) -> list:
-    """Return corrected p-value using Benjamini and Hochberg correction.
+def p_val_correction(
+        p: list
+) -> list:
+    """Return corrected p-value using Benjamini and Hochberg correction
 
-    @:param p : list of all p-values
+    :param p : List of all p-values.
     """
 
-    return multipletests(p, alpha=0.05, method='fdr_bh')
+    return multipletests(p, alpha=ALPHA, method=PVALMETHOD)
 
 
-def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
-    """Calculation of concordance, non-concordance and p-value for the data."""
+def calculate_concordance(
+        graph: nx.Graph,
+        hyp_node: str
+) -> tuple:
+    """Calculation of concordance, non-concordance and p-value for the data
+
+    :param graph : Graph to be used for calculating the concordance.
+    :param hyp_node : Starting point of the graph for calculation.
+    """
     if hyp_node not in graph:
         raise ValueError('Node not preset in graph.')
     concordance_count = 0
@@ -107,25 +160,40 @@ def calculate_concordance(graph: nx.Graph, hyp_node: str) -> tuple:
         elif node_val == 0:
             ambiguous += 1
 
-    p_val = p_value(concordance_count, node_num - ambiguous, 0.5)
+    p_val = p_value(concordance_count, node_num - ambiguous, PVAL)
     return node_num, concordance_count, non_concordance_count, p_val
 
 
-def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: str):
+def rcr_main(
+        file_path: str,
+        file_sep: str,
+        gene_exp_path: str,
+        gene_file_sep: str,
+        threshold: float,
+        output_file: str
+):
+    """Main method for RCR algorithm.
+
+    :param file_path: The knowledge file location used for graph creation.
+    :param file_sep: The separator the knowledge file.
+    :param gene_exp_path: The gene expression data.
+    :param gene_file_sep: The separator for the gene expression data file.
+    :param threshold: The fold-change threshold.
+    :param output_file: The name of the output file.
+    :return:
+    """
     # getting graph from pathway data.
-    path = network_to_file(file_path)
-    G = nx.read_graphml(path)
+    pathway = network_to_file(file_path, file_sep)
 
     # getting fold change dictionary from gene expression data.
-    fold_change = edit_csv(gene_exp_path)
+    fold_change = edit_csv(gene_exp_path, gene_file_sep)
 
     print('Calculating convergence..')
-    overlay_graph = overlay(G, fold_change, threshold)
+    overlay_graph = overlay(pathway, fold_change, threshold)
     concordance_dict = {}
 
     for i in overlay_graph.nodes():
-        concordance = calculate_concordance(overlay_graph, i)
-        concordance_dict[i] = concordance
+        concordance_dict[i] = calculate_concordance(overlay_graph, i)
 
     # remove leaf nodes or nodes with no downstream nodes.
     remove = []
@@ -140,21 +208,18 @@ def rcr_main(file_path: str, gene_exp_path: str, threshold: float, output_file: 
     # forming dataframe
     concordance_df = pd.DataFrame.from_dict(concordance_dict)
     concordance_df = concordance_df.transpose()
-    concordance_df.columns = ['No_of_Nodes', 'Concordance', 'Non-concordance', 'p-value']
-
-    for i in ['No_of_Nodes', 'Concordance', 'Non-concordance']:
-        concordance_df[i] = pd.to_numeric(concordance_df[i])
+    concordance_df.columns = RCRDFCOLS  # [node no., concordance, non-concordance, p-value]
 
     # p-value correction
-    p_val = list(concordance_df['p-value'])
+    p_val = list(concordance_df[RCRDFCOLS[-1]])
     corrected_p_val = p_val_correction(p_val)[1]
-    concordance_df['Corrected p-val'] = corrected_p_val
+    concordance_df[CORRECTEDPVALCOL] = corrected_p_val
 
     # output file saving
-    dir = os.path.dirname(__file__)
-    output_path = os.path.join(dir, output_file)
+    folder = os.path.dirname(__file__)
+    output_path = os.path.join(folder, output_file)
     print('Saving to file {}'.format(output_path))
-    concordance_df.to_csv(output_file, index=True)
+    concordance_df.to_csv(output_file, index=True, header=True)
 
 
 if __name__ == "__main__":

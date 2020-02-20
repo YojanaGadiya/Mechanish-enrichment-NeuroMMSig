@@ -89,12 +89,10 @@ def node_label_value(
     node_attr_dict = nx.get_node_attributes(graph, CHANGE)
 
     # calculating product of first and last node of graph.
-    for node in path_list:
-        if node not in node_attr_dict:
-            print('{} not found in graph.'.format(node))
-
-
+    start_node = path_list[0]
+    end_node = path_list[-1]
     if start_node not in node_attr_dict:
+        print('{} not found in graph.'.format(start_node))
         return 0
     elif end_node not in node_attr_dict:
         print('{} not found in graph.'.format(start_node))
