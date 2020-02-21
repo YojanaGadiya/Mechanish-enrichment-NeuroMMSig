@@ -1,3 +1,0 @@
-[console_scripts]
-rcr = reverse_causal_reasoning.cli:cli
-
