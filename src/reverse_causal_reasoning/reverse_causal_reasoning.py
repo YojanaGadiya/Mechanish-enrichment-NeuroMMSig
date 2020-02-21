@@ -170,6 +170,7 @@ def rcr_main(
         file_sep: str,
         gene_exp_path: str,
         gene_file_sep: str,
+        permute: bool,
         threshold: float,
         output_file: str
 ):
@@ -179,48 +180,70 @@ def rcr_main(
     :param file_sep: The separator the knowledge file.
     :param gene_exp_path: The gene expression data.
     :param gene_file_sep: The separator for the gene expression data file.
+    :param permute: To permute the fold-change and the gene values and run the permutation 100 times.
     :param threshold: The fold-change threshold.
     :param output_file: The name of the output file.
     :return:
     """
+    if permute:
+        rcr_with_permutation(file_path, file_sep, gene_exp_path, gene_file_sep, threshold, output_file)
+    else:
+        # getting graph from pathway data.
+        pathway = network_to_file(file_path, file_sep)
+
+        # getting fold change dictionary from gene expression data.
+        fold_change = edit_csv(gene_exp_path, gene_file_sep)
+
+        print('Calculating convergence..')
+        overlay_graph = overlay(pathway, fold_change, threshold)
+        concordance_dict = {}
+
+        for i in overlay_graph.nodes():
+            concordance_dict[i] = calculate_concordance(overlay_graph, i)
+
+        # remove leaf nodes or nodes with no downstream nodes.
+        remove = []
+        for i in concordance_dict:
+            node_num, _, _, _ = concordance_dict[i]
+            if node_num == 0.0:
+                remove.append(i)
+
+        for node in remove:
+            del concordance_dict[node]
+
+        # forming dataframe
+        concordance_df = pd.DataFrame.from_dict(concordance_dict)
+        concordance_df = concordance_df.transpose()
+        concordance_df.columns = RCRDFCOLS  # [node no., concordance, non-concordance, p-value]
+
+        # p-value correction
+        p_val = list(concordance_df[RCRDFCOLS[-1]])
+        corrected_p_val = p_val_correction(p_val)[1]
+        concordance_df[CORRECTEDPVALCOL] = corrected_p_val
+
+        # output file saving
+        folder = os.path.dirname(__file__)
+        output_path = os.path.join(folder, output_file)
+        print('Saving to file {}'.format(output_path))
+        concordance_df.to_csv(output_file, index=True, header=True)  # index : hyp-node name
+
+
+def rcr_with_permutation(
+        file_path: str,
+        file_sep: str,
+        gene_exp_path: str,
+        gene_file_sep: str,
+        threshold: float,
+        output_file: str
+):
+    permute_p_val = []
     # getting graph from pathway data.
     pathway = network_to_file(file_path, file_sep)
 
     # getting fold change dictionary from gene expression data.
     fold_change = edit_csv(gene_exp_path, gene_file_sep)
 
-    print('Calculating convergence..')
-    overlay_graph = overlay(pathway, fold_change, threshold)
-    concordance_dict = {}
 
-    for i in overlay_graph.nodes():
-        concordance_dict[i] = calculate_concordance(overlay_graph, i)
-
-    # remove leaf nodes or nodes with no downstream nodes.
-    remove = []
-    for i in concordance_dict:
-        node_num, _, _, _ = concordance_dict[i]
-        if node_num == 0.0:
-            remove.append(i)
-
-    for node in remove:
-        del concordance_dict[node]
-
-    # forming dataframe
-    concordance_df = pd.DataFrame.from_dict(concordance_dict)
-    concordance_df = concordance_df.transpose()
-    concordance_df.columns = RCRDFCOLS  # [node no., concordance, non-concordance, p-value]
-
-    # p-value correction
-    p_val = list(concordance_df[RCRDFCOLS[-1]])
-    corrected_p_val = p_val_correction(p_val)[1]
-    concordance_df[CORRECTEDPVALCOL] = corrected_p_val
-
-    # output file saving
-    folder = os.path.dirname(__file__)
-    output_path = os.path.join(folder, output_file)
-    print('Saving to file {}'.format(output_path))
-    concordance_df.to_csv(output_file, index=True, header=True)  # index : hyp-node name
 
 
 if __name__ == "__main__":

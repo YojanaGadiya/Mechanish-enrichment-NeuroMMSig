@@ -35,6 +35,13 @@ from .reverse_causal_reasoning import rcr_main
     help='Separator for gene expression data file (CSV : ,)'
 )
 @click.option(
+    '--permute',
+    required=False,
+    default=False,
+    type=bool,
+    help='Permutation of gene value with respect to fold change'
+)
+@click.option(
     '--threshold',
     required=False,
     default=0.5,
@@ -51,8 +58,9 @@ def cli(
         file_sep: str,
         gene_exp_data: str,
         gene_exp_data_sep: str,
+        permute: bool,
         threshold: int,
         output_path: str
 ):
     click.echo('RCR concordance count initialized')  # equivalent to print
-    rcr_main(file_path, file_sep, gene_exp_data, gene_exp_data_sep, threshold, output_path)
+    rcr_main(file_path, file_sep, gene_exp_data, gene_exp_data_sep, permute, threshold, output_path)

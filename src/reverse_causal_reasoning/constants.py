@@ -12,3 +12,4 @@ ALPHA = 0.05
 PVAL = 0.5
 RCRDFCOLS = ['No_of_Nodes', 'Concordance', 'Non-concordance', 'p-value']
 CORRECTEDPVALCOL = 'Corrected p-val'
+PERMUTE = 100
