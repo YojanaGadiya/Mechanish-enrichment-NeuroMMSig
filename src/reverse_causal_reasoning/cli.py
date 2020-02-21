@@ -37,7 +37,7 @@ from .reverse_causal_reasoning import rcr_main
 @click.option(
     '--threshold',
     required=False,
-    default=1.0,
+    default=0.5,
     type=float,
     help='Threshold value for fold-change'
 )

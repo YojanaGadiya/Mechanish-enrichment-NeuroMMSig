@@ -30,6 +30,7 @@ def overlay(
         if i.upper() not in fold_change_dict:
             print('{} not found in graph'.format(i))
         else:
+            # TODO: Permutation
             if fold_change_dict[i.upper()] > threshold:  # increased expression
                 graph.add_node(i, change=1)
             elif fold_change_dict[i.upper()] < -threshold:  # decreased expression
@@ -219,7 +220,7 @@ def rcr_main(
     folder = os.path.dirname(__file__)
     output_path = os.path.join(folder, output_file)
     print('Saving to file {}'.format(output_path))
-    concordance_df.to_csv(output_file, index=True, header=True)
+    concordance_df.to_csv(output_file, index=True, header=True)  # index : hyp-node name
 
 
 if __name__ == "__main__":
