@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Code to carry out reverse causal reasoning (RCR) algorithm."""
+"""Code to carry out reverse causal reasoning (RCR) algorithm"""
 
 import networkx as nx
 import numpy as np
@@ -19,11 +19,11 @@ def overlay(
         fold_change_dict: dict,
         threshold: float
 ) -> nx.Graph:
-    """Return the overlayed graph with fold-change data.
+    """Return the overlayed graph with fold-change data
 
-    :param graph : Graph of the knowledge.
-    :param fold_change_dict : The fold-change dictionary from the gene expression data.
-    :param threshold : The threshold value to differentiate up-regulated and down-regulated genes from the ambiguous one.
+    :param graph : Graph of the knowledge
+    :param fold_change_dict : The fold-change dictionary from the gene expression data
+    :param threshold : The threshold value to differentiate up-regulated and down-regulated genes from the ambiguous one
     """
     for i in graph.nodes():
         # check if it exists
@@ -44,7 +44,7 @@ def shortest_path(
         graph: nx.Graph,
         hyp_node: str
 ) -> dict:
-    """Return the shortest path of the hype nodes with all the other nodes."""
+    """Return the shortest path of the hype nodes with all the other nodes"""
     return nx.single_source_shortest_path(graph, hyp_node)
 
 
@@ -52,10 +52,10 @@ def edge_label_value(
         graph: nx.Graph,
         path_list: list
 ):
-    """Return the product of the edges value of the path.
+    """Return the product of the edges value of the path
 
-    :param graph : The graph of the knowledge created.
-    :param path_list : The
+    :param graph : The graph of the knowledge created
+    :param path_list : The list of the path from one node to another
     """
     if len(path_list) == 1:
         return 0
@@ -79,10 +79,10 @@ def node_label_value(
         graph: nx.Graph,
         path_list: list
 ):
-    """Return the product of the starting and end node of the path.
+    """Return the product of the starting and end node of the path
 
-    :param graph : The graph of the knowledge created.
-    :param path_list : The list of the path of one node to another.
+    :param graph : The graph of the knowledge created
+    :param path_list : The list of the path of one node to another
     """
     if len(path_list) == 1:
         return 0
@@ -109,11 +109,11 @@ def p_value(
         nodes: int,
         p: float
 ) -> float:
-    """Return the p-value.
+    """Return the p-value
 
-    :param concordance_count : The number of successful prediction.
-    :param nodes : The total number of downstream nodes excluding the ambiguous one.
-    :param p : Probability of achieving a result.
+    :param concordance_count : The number of successful prediction
+    :param nodes : The total number of downstream nodes excluding the ambiguous one
+    :param p : Probability of achieving a result
     """
     return binom.pmf(concordance_count, nodes, p)
 
@@ -123,7 +123,7 @@ def p_val_correction(
 ) -> list:
     """Return corrected p-value using Benjamini and Hochberg correction
 
-    :param p : List of all p-values.
+    :param p : List of all p-values
     """
 
     return multipletests(p, alpha=ALPHA, method=PVALMETHOD)
@@ -135,8 +135,8 @@ def calculate_concordance(
 ) -> tuple:
     """Calculation of concordance, non-concordance and p-value for the data
 
-    :param graph : Graph to be used for calculating the concordance.
-    :param hyp_node : Starting point of the graph for calculation.
+    :param graph : Graph to be used for calculating the concordance
+    :param hyp_node : Starting point of the graph for calculation
     """
     if hyp_node not in graph:
         raise ValueError('Node not preset in graph.')
@@ -174,15 +174,15 @@ def rcr_main(
         threshold: float,
         output_file: str
 ):
-    """Main method for RCR algorithm.
+    """Main method for RCR algorithm
 
-    :param file_path: The knowledge file location used for graph creation.
-    :param file_sep: The separator the knowledge file.
-    :param gene_exp_path: The gene expression data.
-    :param gene_file_sep: The separator for the gene expression data file.
-    :param permute: To permute the fold-change and the gene values and run the permutation 100 times.
-    :param threshold: The fold-change threshold.
-    :param output_file: The name of the output file.
+    :param file_path: The knowledge file location used for graph creation
+    :param file_sep: The separator the knowledge file
+    :param gene_exp_path: The gene expression data
+    :param gene_file_sep: The separator for the gene expression data file
+    :param permute: To permute the fold-change and the gene values and run the permutation 100 times
+    :param threshold: The fold-change threshold
+    :param output_file: The name of the output file
     :return:
     """
     if permute:
@@ -242,6 +242,9 @@ def rcr_with_permutation(
 
     # getting fold change dictionary from gene expression data.
     fold_change = edit_csv(gene_exp_path, gene_file_sep)
+
+    # permutation on the dictionary
+
 
 
 

@@ -9,11 +9,11 @@ from .constants import *
 
 
 def edit_csv(file_path: str, delimiter: str, permute: bool) -> Dict:
-    """Convert the gene expression data to fold-change dictionary.
+    """Convert the gene expression data to fold-change dictionary
 
-    :param file_path: The path of the gene expression file.
-    :param delimiter: The delimiter of the gene expression file.
-    :param permute: The boolean value for counting for permutations.
+    :param file_path: The path of the gene expression file
+    :param delimiter: The delimiter of the gene expression file
+    :param permute: The boolean value for counting for permutations
     """
     gene_exp = pd.read_csv(file_path, sep=delimiter)
     gene_exp.dropna(inplace=True)

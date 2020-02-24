@@ -25,7 +25,7 @@ from .reverse_causal_reasoning import rcr_main
     '--gene-exp-data',
     required=True,
     type=click.Path(dir_okay=False, file_okay=True),
-    help='Path for gene expression data.'
+    help='Path for gene expression data'
 )
 @click.option(
     '--gene-exp-data-sep',
@@ -35,7 +35,7 @@ from .reverse_causal_reasoning import rcr_main
     help='Separator for gene expression data file (CSV : ,)'
 )
 @click.option(
-    '--permute',
+    '-permute',
     required=False,
     default=False,
     type=bool,
